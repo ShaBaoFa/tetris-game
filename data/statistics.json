@@ -1,0 +1,17 @@
+{
+  "total_games": 1,
+  "total_play_time": 0,
+  "total_lines_cleared": 36,
+  "total_score": 17730,
+  "highest_score": 17730,
+  "highest_level": 4,
+  "most_lines_cleared": 36,
+  "games_per_difficulty": {
+    "EASY": 0,
+    "MEDIUM": 1,
+    "HARD": 0,
+    "EXPERT": 0
+  },
+  "session_start_time": 1769525701.534964,
+  "last_session_date": "2026-01-27"
+}

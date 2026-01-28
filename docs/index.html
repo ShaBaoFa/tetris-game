@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Neon Tetris | 俄罗斯方块</title>
+    <meta
+      name="description"
+      content="一款专注节奏与精度的桌面级俄罗斯方块，支持高分榜、统计与可调难度。"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #080c12;
+        --panel: rgba(10, 16, 26, 0.8);
+        --card: rgba(12, 19, 32, 0.7);
+        --text: #e7f1ff;
+        --muted: #a1b2c7;
+        --accent: #29f2d0;
+        --accent-2: #ffb347;
+        --stroke: rgba(255, 255, 255, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Outfit", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+      }
+
+      .page {
+        position: relative;
+        overflow: hidden;
+        min-height: 100vh;
+      }
+
+      .glow {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+
+      .glow::before,
+      .glow::after {
+        content: "";
+        position: absolute;
+        border-radius: 999px;
+        filter: blur(140px);
+        opacity: 0.6;
+      }
+
+      .glow::before {
+        width: 420px;
+        height: 420px;
+        left: -120px;
+        top: 60px;
+        background: rgba(41, 242, 208, 0.35);
+      }
+
+      .glow::after {
+        width: 520px;
+        height: 520px;
+        right: -180px;
+        bottom: -120px;
+        background: rgba(255, 179, 71, 0.28);
+      }
+
+      .container {
+        position: relative;
+        width: min(1100px, 92vw);
+        margin: 0 auto;
+        padding: 56px 0 72px;
+        display: grid;
+        gap: 32px;
+      }
+
+      header {
+        display: grid;
+        gap: 20px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        gap: 12px;
+        align-items: center;
+        font-size: 12px;
+        letter-spacing: 0.35em;
+        text-transform: uppercase;
+        color: rgba(41, 242, 208, 0.7);
+      }
+
+      .eyebrow span {
+        padding: 6px 14px;
+        border-radius: 999px;
+        border: 1px solid rgba(41, 242, 208, 0.25);
+        background: rgba(41, 242, 208, 0.08);
+      }
+
+      h1 {
+        font-size: clamp(32px, 5vw, 54px);
+        font-weight: 600;
+        line-height: 1.1;
+      }
+
+      .subtitle {
+        max-width: 640px;
+        font-size: 18px;
+        color: var(--muted);
+      }
+
+      .hero-grid {
+        display: grid;
+        gap: 24px;
+      }
+
+      .hero-panel {
+        border-radius: 28px;
+        padding: 24px;
+        background: var(--panel);
+        border: 1px solid var(--stroke);
+        box-shadow: 0 40px 80px -40px rgba(41, 242, 208, 0.5);
+        display: grid;
+        gap: 20px;
+      }
+
+      .hero-panel h2 {
+        font-size: 20px;
+        font-weight: 600;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 16px;
+      }
+
+      .stat-card {
+        padding: 16px;
+        border-radius: 20px;
+        border: 1px solid var(--stroke);
+        background: var(--card);
+      }
+
+      .stat-card span {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        color: var(--muted);
+      }
+
+      .stat-card strong {
+        display: block;
+        margin-top: 8px;
+        font-size: 20px;
+        font-weight: 600;
+      }
+
+      .controls {
+        display: grid;
+        gap: 12px;
+        font-size: 14px;
+      }
+
+      .control-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 14px;
+        border-radius: 14px;
+        border: 1px solid var(--stroke);
+        background: rgba(8, 13, 22, 0.65);
+      }
+
+      .keys {
+        display: inline-flex;
+        gap: 8px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+      }
+
+      .keys span {
+        padding: 6px 10px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .cta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .button {
+        padding: 12px 22px;
+        border-radius: 999px;
+        border: 1px solid transparent;
+        font-weight: 600;
+        font-size: 14px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .button.primary {
+        background: var(--accent);
+        color: #041016;
+        box-shadow: 0 16px 40px -20px rgba(41, 242, 208, 0.7);
+      }
+
+      .button.ghost {
+        border-color: rgba(255, 255, 255, 0.18);
+        color: var(--text);
+      }
+
+      .grid-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+      }
+
+      .feature-card {
+        border-radius: 20px;
+        padding: 18px;
+        border: 1px solid var(--stroke);
+        background: rgba(8, 14, 24, 0.7);
+      }
+
+      .feature-card h3 {
+        font-size: 16px;
+        margin-bottom: 8px;
+      }
+
+      .feature-card p {
+        font-size: 14px;
+        color: var(--muted);
+      }
+
+      footer {
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding-top: 24px;
+        font-size: 13px;
+        color: var(--muted);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: space-between;
+      }
+
+      @media (min-width: 920px) {
+        .hero-grid {
+          grid-template-columns: 1.3fr 0.7fr;
+          align-items: start;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .control-row {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="glow"></div>
+      <div class="container">
+        <header>
+          <div class="eyebrow">
+            <span>Desktop Build</span>
+            <span>Python + Pygame</span>
+          </div>
+          <h1>Neon Tetris 控制台</h1>
+          <p class="subtitle">
+            聚焦节奏、速度与策略的桌面级俄罗斯方块。沉浸式界面、统计看板与高分榜，让你每一局都能找到新的破局路线。
+          </p>
+          <div class="cta-row">
+            <a class="button primary" href="https://github.com/ShaBaoFa/tetris-game">
+              查看代码库
+            </a>
+            <a class="button ghost" href="#run">本地运行指南</a>
+          </div>
+        </header>
+
+        <section class="hero-grid">
+          <div class="hero-panel">
+            <h2>实时对局舱</h2>
+            <div class="stats">
+              <div class="stat-card">
+                <span>模式</span>
+                <strong>经典竞速</strong>
+              </div>
+              <div class="stat-card">
+                <span>难度曲线</span>
+                <strong>动态加速</strong>
+              </div>
+              <div class="stat-card">
+                <span>数据追踪</span>
+                <strong>胜率统计</strong>
+              </div>
+            </div>
+            <div class="grid-row">
+              <div class="feature-card">
+                <h3>幽灵方块</h3>
+                <p>预测落点，让你以更稳的节奏做出提前决策。</p>
+              </div>
+              <div class="feature-card">
+                <h3>高分榜</h3>
+                <p>本地存档，记录每一次突破记录的时刻。</p>
+              </div>
+              <div class="feature-card">
+                <h3>沉浸音效</h3>
+                <p>支持自定义音效文件，营造紧张节拍。</p>
+              </div>
+            </div>
+          </div>
+
+          <aside class="hero-panel" style="box-shadow: 0 30px 60px -40px rgba(255, 179, 71, 0.6)">
+            <h2>操作面板</h2>
+            <div class="controls">
+              <div class="control-row">
+                <span>移动</span>
+                <div class="keys">
+                  <span>←</span>
+                  <span>→</span>
+                </div>
+              </div>
+              <div class="control-row">
+                <span>旋转</span>
+                <div class="keys"><span>↑</span></div>
+              </div>
+              <div class="control-row">
+                <span>软降</span>
+                <div class="keys"><span>↓</span></div>
+              </div>
+              <div class="control-row">
+                <span>硬降</span>
+                <div class="keys"><span>Space</span></div>
+              </div>
+              <div class="control-row">
+                <span>暂停</span>
+                <div class="keys"><span>P</span></div>
+              </div>
+              <div class="control-row">
+                <span>菜单</span>
+                <div class="keys"><span>Esc</span></div>
+              </div>
+            </div>
+          </aside>
+        </section>
+
+        <section id="run" class="hero-panel">
+          <h2>本地运行指南</h2>
+          <p class="subtitle">
+            需要 Python 3.10+ 与 Pygame。可选地放入音效文件提升沉浸感。
+          </p>
+          <div class="grid-row">
+            <div class="feature-card">
+              <h3>1. 安装依赖</h3>
+              <p>pip install -r requirements.txt</p>
+            </div>
+            <div class="feature-card">
+              <h3>2. 启动游戏</h3>
+              <p>python main.py</p>
+            </div>
+            <div class="feature-card">
+              <h3>3. 自定义音效</h3>
+              <p>将音效放入 assets/sounds/</p>
+            </div>
+          </div>
+        </section>
+
+        <footer>
+          <span>Neon Tetris · Advanced Tetris</span>
+          <span>Build for GitHub Pages</span>
+        </footer>
+      </div>
+    </div>
+  </body>
+</html>
