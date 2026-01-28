@@ -26,6 +26,7 @@ class SettingsManager:
             'show_next_piece': True,
             'show_grid': False,
             'theme': 'CLASSIC',
+            'language': 'zh',
             'controls': {
                 'left': pygame.K_LEFT,
                 'right': pygame.K_RIGHT,

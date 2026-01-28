@@ -8,6 +8,14 @@ from .highscore import HighScoreManager
 from .statistics import StatisticsManager
 from .settings import SettingsManager
 from .sound import SoundManager
+from .i18n import (
+    t,
+    format_time,
+    difficulty_label,
+    theme_label,
+    LANGUAGE_LABELS,
+    LANGUAGE_ORDER,
+)
 
 class GameEngine:
     """游戏引擎类"""
@@ -16,7 +24,6 @@ class GameEngine:
         """初始化游戏引擎"""
         pygame.init()
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-        pygame.display.set_caption("俄罗斯方块 - Advanced Tetris")
         self.clock = pygame.time.Clock()
         self.base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.font = self._load_font(30)
@@ -29,6 +36,8 @@ class GameEngine:
         self.settings_manager = SettingsManager()
         self.sound_manager = SoundManager(self.base_dir, self.settings_manager)
         self.theme = THEMES.get(self.settings_manager.get_setting('theme', 'CLASSIC'), THEMES['CLASSIC'])
+        self.language = self.settings_manager.get_setting('language', 'zh')
+        pygame.display.set_caption(t(self.language, "app.title"))
         
         # 游戏状态
         self.board = GameBoard()
@@ -51,19 +60,20 @@ class GameEngine:
         
         # 菜单状态
         self.menu_index = 0
-        self.menu_items = ['开始游戏', '高分榜', '统计数据', '设置', '退出']
+        self.menu_item_keys = [
+            'menu.start',
+            'menu.high_scores',
+            'menu.statistics',
+            'menu.settings',
+            'menu.exit'
+        ]
+        self.menu_items = []
+        self._update_menu_items()
         
         # 设置菜单状态
         self.settings_menu_index = 0
-        self.settings_menu_items = [
-            '难度: {0}'.format(self.difficulty),
-            '音效: {0}'.format('开启' if self.settings_manager.get_setting('sound_enabled') else '关闭'),
-            '音乐: {0}'.format('开启' if self.settings_manager.get_setting('music_enabled') else '关闭'),
-            '幽灵方块: {0}'.format('开启' if self.settings_manager.get_setting('show_ghost_piece') else '关闭'),
-            '主题: {0}'.format(self.settings_manager.get_setting('theme', 'CLASSIC')),
-            '重置设置',
-            '返回'
-        ]
+        self.settings_menu_entries = []
+        self._update_settings_menu()
         
         # 输入状态
         self.entering_name = False
@@ -71,6 +81,26 @@ class GameEngine:
         
         # 初始化游戏
         self.board.create_new_piece()
+
+    def _t(self, key: str, **kwargs) -> str:
+        return t(self.language, key, **kwargs)
+
+    def _on_off(self, value: bool) -> str:
+        return self._t('toggle.on') if value else self._t('toggle.off')
+
+    def _update_menu_items(self) -> None:
+        self.menu_items = [self._t(key) for key in self.menu_item_keys]
+
+    def _cycle_language(self, direction: int) -> None:
+        if self.language not in LANGUAGE_ORDER:
+            self.language = 'en'
+        current_index = LANGUAGE_ORDER.index(self.language)
+        next_index = (current_index + direction) % len(LANGUAGE_ORDER)
+        self.language = LANGUAGE_ORDER[next_index]
+        self.settings_manager.set_setting('language', self.language)
+        pygame.display.set_caption(self._t('app.title'))
+        self._update_menu_items()
+        self._update_settings_menu()
         
     def handle_events(self):
         """处理游戏事件"""
@@ -102,7 +132,11 @@ class GameEngine:
         if key == pygame.K_RETURN and self.player_name.strip():
             # 保存高分
             self.high_score_manager.add_score(
-                self.player_name, int(self.score), self.level, self.lines_cleared
+                self.player_name,
+                int(self.score),
+                self.level,
+                self.lines_cleared,
+                default_name=self._t('default_player_name')
             )
             self.player_name = ""
             self.entering_name = False
@@ -124,7 +158,11 @@ class GameEngine:
             if key == pygame.K_RETURN and self.player_name.strip():
                 # 保存高分
                 self.high_score_manager.add_score(
-                    self.player_name, int(self.score), self.level, self.lines_cleared
+                    self.player_name,
+                    int(self.score),
+                    self.level,
+                    self.lines_cleared,
+                    default_name=self._t('default_player_name')
                 )
                 self.player_name = ""
                 self.entering_name = False
@@ -196,18 +234,18 @@ class GameEngine:
             
     def _execute_menu_item(self):
         """执行菜单项"""
-        item = self.menu_items[self.menu_index]
+        item_key = self.menu_item_keys[self.menu_index]
         
-        if item == '开始游戏':
+        if item_key == 'menu.start':
             self.start_new_game()
-        elif item == '高分榜':
+        elif item_key == 'menu.high_scores':
             self.game_state = 'HIGH_SCORES'
-        elif item == '统计数据':
+        elif item_key == 'menu.statistics':
             self.game_state = 'STATISTICS'
-        elif item == '设置':
+        elif item_key == 'menu.settings':
             self.game_state = 'SETTINGS'
             self._update_settings_menu()
-        elif item == '退出':
+        elif item_key == 'menu.exit':
             pygame.quit()
             sys.exit()
             
@@ -325,9 +363,9 @@ class GameEngine:
     def _handle_settings_input(self, key):
         """处理设置菜单输入"""
         if key == pygame.K_UP:
-            self.settings_menu_index = (self.settings_menu_index - 1) % len(self.settings_menu_items)
+            self.settings_menu_index = (self.settings_menu_index - 1) % len(self.settings_menu_entries)
         elif key == pygame.K_DOWN:
-            self.settings_menu_index = (self.settings_menu_index + 1) % len(self.settings_menu_items)
+            self.settings_menu_index = (self.settings_menu_index + 1) % len(self.settings_menu_entries)
         elif key == pygame.K_RETURN:
             self._execute_settings_item()
         elif key in (pygame.K_LEFT, pygame.K_RIGHT):
@@ -337,43 +375,45 @@ class GameEngine:
     
     def _execute_settings_item(self):
         """执行设置项"""
-        item = self.settings_menu_items[self.settings_menu_index]
+        entry_id = self.settings_menu_entries[self.settings_menu_index]['id']
         
-        if item.startswith('难度:'):
+        if entry_id == 'difficulty':
             difficulties = ['EASY', 'MEDIUM', 'HARD', 'EXPERT']
             current_index = difficulties.index(self.difficulty)
             next_index = (current_index + 1) % len(difficulties)
             self.difficulty = difficulties[next_index]
             self.settings_manager.set_setting('difficulty', self.difficulty)
-            self._update_settings_menu()
-        elif item.startswith('音效:'):
+        elif entry_id == 'sound':
             current = self.settings_manager.get_setting('sound_enabled', True)
             self.settings_manager.set_setting('sound_enabled', not current)
-            self._update_settings_menu()
-        elif item.startswith('音乐:'):
+        elif entry_id == 'music':
             current = self.settings_manager.get_setting('music_enabled', True)
             self.settings_manager.set_setting('music_enabled', not current)
-            self._update_settings_menu()
-        elif item.startswith('幽灵方块:'):
+        elif entry_id == 'ghost':
             current = self.settings_manager.get_setting('show_ghost_piece', True)
             self.settings_manager.set_setting('show_ghost_piece', not current)
-            self._update_settings_menu()
-        elif item.startswith('主题:'):
+        elif entry_id == 'theme':
             themes = list(THEMES.keys())
             current = self.settings_manager.get_setting('theme', 'CLASSIC')
             current_index = themes.index(current) if current in themes else 0
             next_index = (current_index + 1) % len(themes)
             self.settings_manager.set_setting('theme', themes[next_index])
             self.theme = THEMES.get(themes[next_index], THEMES['CLASSIC'])
-            self._update_settings_menu()
-        elif item == '重置设置':
+        elif entry_id == 'language':
+            self._cycle_language(1)
+        elif entry_id == 'reset':
             self.settings_manager.reset_to_default()
             self.difficulty = self.settings_manager.get_setting('difficulty', 'MEDIUM')
             self.theme = THEMES.get(self.settings_manager.get_setting('theme', 'CLASSIC'), THEMES['CLASSIC'])
-            self._update_settings_menu()
-        elif item == '返回':
+            self.language = self.settings_manager.get_setting('language', 'zh')
+            pygame.display.set_caption(self._t('app.title'))
+            self._update_menu_items()
+        elif entry_id == 'back':
             self.game_state = 'MENU'
-        
+
+        if entry_id != 'back':
+            self._update_settings_menu()
+
         self.sound_manager.update_settings()
         if self.settings_manager.get_setting('music_enabled', True):
             self.sound_manager.play_music()
@@ -382,41 +422,72 @@ class GameEngine:
     
     def _adjust_setting(self, key):
         """调整设置值（左右键）"""
-        item = self.settings_menu_items[self.settings_menu_index]
-        if item.startswith('难度:'):
+        entry_id = self.settings_menu_entries[self.settings_menu_index]['id']
+        direction = -1 if key == pygame.K_LEFT else 1
+        if entry_id == 'difficulty':
             difficulties = ['EASY', 'MEDIUM', 'HARD', 'EXPERT']
             current_index = difficulties.index(self.difficulty)
-            if key == pygame.K_LEFT:
-                current_index = (current_index - 1) % len(difficulties)
-            else:
-                current_index = (current_index + 1) % len(difficulties)
+            current_index = (current_index + direction) % len(difficulties)
             self.difficulty = difficulties[current_index]
             self.settings_manager.set_setting('difficulty', self.difficulty)
-            self._update_settings_menu()
-        elif item.startswith('主题:'):
+        elif entry_id == 'theme':
             themes = list(THEMES.keys())
             current = self.settings_manager.get_setting('theme', 'CLASSIC')
             current_index = themes.index(current) if current in themes else 0
-            if key == pygame.K_LEFT:
-                current_index = (current_index - 1) % len(themes)
-            else:
-                current_index = (current_index + 1) % len(themes)
+            current_index = (current_index + direction) % len(themes)
             self.settings_manager.set_setting('theme', themes[current_index])
             self.theme = THEMES.get(themes[current_index], THEMES['CLASSIC'])
-            self._update_settings_menu()
+        elif entry_id == 'language':
+            self._cycle_language(direction)
+        elif entry_id in ['sound', 'music', 'ghost']:
+            current_key = {
+                'sound': 'sound_enabled',
+                'music': 'music_enabled',
+                'ghost': 'show_ghost_piece'
+            }[entry_id]
+            current_value = self.settings_manager.get_setting(current_key, True)
+            self.settings_manager.set_setting(current_key, not current_value)
+
+        self._update_settings_menu()
     
     def _update_settings_menu(self):
         """更新设置菜单显示"""
-        self.settings_menu_items = [
-            '难度: {0}'.format(self.difficulty),
-            '音效: {0}'.format('开启' if self.settings_manager.get_setting('sound_enabled') else '关闭'),
-            '音乐: {0}'.format('开启' if self.settings_manager.get_setting('music_enabled') else '关闭'),
-            '幽灵方块: {0}'.format('开启' if self.settings_manager.get_setting('show_ghost_piece') else '关闭'),
-            '主题: {0}'.format(self.settings_manager.get_setting('theme', 'CLASSIC')),
-            '重置设置',
-            '返回'
+        theme_value = self.settings_manager.get_setting('theme', 'CLASSIC')
+        self.settings_menu_entries = [
+            {
+                'id': 'difficulty',
+                'label': f"{self._t('settings.difficulty')}: {difficulty_label(self.language, self.difficulty)}"
+            },
+            {
+                'id': 'sound',
+                'label': f"{self._t('settings.sound')}: {self._on_off(self.settings_manager.get_setting('sound_enabled', True))}"
+            },
+            {
+                'id': 'music',
+                'label': f"{self._t('settings.music')}: {self._on_off(self.settings_manager.get_setting('music_enabled', True))}"
+            },
+            {
+                'id': 'ghost',
+                'label': f"{self._t('settings.ghost')}: {self._on_off(self.settings_manager.get_setting('show_ghost_piece', True))}"
+            },
+            {
+                'id': 'theme',
+                'label': f"{self._t('settings.theme')}: {theme_label(self.language, theme_value)}"
+            },
+            {
+                'id': 'language',
+                'label': f"{self._t('settings.language')}: {LANGUAGE_LABELS.get(self.language, self.language)}"
+            },
+            {
+                'id': 'reset',
+                'label': self._t('settings.reset')
+            },
+            {
+                'id': 'back',
+                'label': self._t('settings.back')
+            }
         ]
-        self.settings_menu_index = min(self.settings_menu_index, len(self.settings_menu_items) - 1)
+        self.settings_menu_index = min(self.settings_menu_index, len(self.settings_menu_entries) - 1)
     
     def render(self):
         """渲染游戏画面"""
@@ -446,7 +517,7 @@ class GameEngine:
     
     def _render_menu(self):
         """渲染菜单"""
-        title = self.font.render("俄罗斯方块", True, COLORS['WHITE'])
+        title = self.font.render(self._t('menu.title'), True, COLORS['WHITE'])
         title_rect = title.get_rect(center=(SCREEN_WIDTH // 2, 150))
         self.screen.blit(title, title_rect)
         
@@ -457,9 +528,9 @@ class GameEngine:
             self.screen.blit(text, text_rect)
         
         controls = [
-            "使用 ↑↓ 选择菜单",
-            "按 ENTER 确认",
-            "按 ESC 退出游戏"
+            self._t('menu.hint.up_down'),
+            self._t('menu.hint.enter'),
+            self._t('menu.hint.esc')
         ]
         for i, control in enumerate(controls):
             text = self.tiny_font.render(control, True, COLORS['LIGHT_GRAY'])
@@ -519,7 +590,7 @@ class GameEngine:
         """渲染侧边栏"""
         sidebar_x = GRID_WIDTH * GRID_SIZE + 20
         
-        next_text = self.small_font.render("下一个:", True, COLORS['WHITE'])
+        next_text = self.small_font.render(self._t('sidebar.next'), True, COLORS['WHITE'])
         self.screen.blit(next_text, (sidebar_x, 20))
         
         if self.board.next_piece:
@@ -529,27 +600,37 @@ class GameEngine:
                         pygame.draw.rect(self.screen, self.board.next_piece.color,
                                          (sidebar_x + x * 20, 60 + y * 20, 18, 18))
         
-        score_text = self.small_font.render(f"分数: {int(self.score)}", True, COLORS['WHITE'])
+        score_text = self.small_font.render(
+            f"{self._t('sidebar.score')}: {int(self.score)}", True, COLORS['WHITE']
+        )
         self.screen.blit(score_text, (sidebar_x, 150))
         
-        level_text = self.small_font.render(f"等级: {self.level}", True, COLORS['WHITE'])
+        level_text = self.small_font.render(
+            f"{self._t('sidebar.level')}: {self.level}", True, COLORS['WHITE']
+        )
         self.screen.blit(level_text, (sidebar_x, 180))
         
-        lines_text = self.small_font.render(f"行数: {self.lines_cleared}", True, COLORS['WHITE'])
+        lines_text = self.small_font.render(
+            f"{self._t('sidebar.lines')}: {self.lines_cleared}", True, COLORS['WHITE']
+        )
         self.screen.blit(lines_text, (sidebar_x, 210))
         
-        diff_text = self.small_font.render(f"难度: {self.difficulty}", True, COLORS['WHITE'])
+        diff_text = self.small_font.render(
+            f"{self._t('sidebar.difficulty')}: {difficulty_label(self.language, self.difficulty)}",
+            True,
+            COLORS['WHITE']
+        )
         self.screen.blit(diff_text, (sidebar_x, 240))
         
         controls_y = 320
         controls = [
-            "控制:",
-            "← → 移动",
-            "↑ 旋转",
-            "↓ 软降",
-            "空格 硬降",
-            "P 暂停",
-            "ESC 菜单"
+            self._t('sidebar.controls'),
+            self._t('controls.left_right'),
+            self._t('controls.rotate'),
+            self._t('controls.soft_drop'),
+            self._t('controls.hard_drop'),
+            self._t('controls.pause'),
+            self._t('controls.menu')
         ]
         for i, text in enumerate(controls):
             control_text = self.small_font.render(text, True, COLORS['LIGHT_GRAY'])
@@ -562,11 +643,11 @@ class GameEngine:
         overlay.fill(COLORS['BLACK'])
         self.screen.blit(overlay, (0, 0))
         
-        pause_text = self.font.render("游戏暂停", True, COLORS['WHITE'])
+        pause_text = self.font.render(self._t('pause.title'), True, COLORS['WHITE'])
         pause_rect = pause_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
         self.screen.blit(pause_text, pause_rect)
         
-        resume_text = self.small_font.render("按 P 继续游戏", True, COLORS['WHITE'])
+        resume_text = self.small_font.render(self._t('pause.resume'), True, COLORS['WHITE'])
         resume_rect = resume_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 40))
         self.screen.blit(resume_text, resume_rect)
     
@@ -577,30 +658,41 @@ class GameEngine:
         overlay.fill(COLORS['BLACK'])
         self.screen.blit(overlay, (0, 0))
         
-        game_over_text = self.font.render("游戏结束", True, COLORS['RED'])
+        game_over_text = self.font.render(self._t('game_over.title'), True, COLORS['RED'])
         game_over_rect = game_over_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 40))
         self.screen.blit(game_over_text, game_over_rect)
         
-        final_score_text = self.small_font.render(f"最终分数: {int(self.score)}", True, COLORS['WHITE'])
+        final_score_text = self.small_font.render(
+            f"{self._t('game_over.final_score')}: {int(self.score)}",
+            True,
+            COLORS['WHITE']
+        )
         final_score_rect = final_score_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
         self.screen.blit(final_score_text, final_score_rect)
         
-        restart_text = self.small_font.render("按 SPACE 继续", True, COLORS['WHITE'])
+        restart_text = self.small_font.render(self._t('game_over.continue'), True, COLORS['WHITE'])
         restart_rect = restart_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 40))
         self.screen.blit(restart_text, restart_rect)
         
-        menu_text = self.small_font.render("按 ESC 返回菜单", True, COLORS['WHITE'])
+        menu_text = self.small_font.render(self._t('game_over.menu'), True, COLORS['WHITE'])
         menu_rect = menu_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 70))
         self.screen.blit(menu_text, menu_rect)
     
     def _render_high_scores(self):
         """渲染高分榜"""
-        title = self.font.render("高分榜", True, COLORS['YELLOW'])
+        title = self.font.render(self._t('high_scores.title'), True, COLORS['YELLOW'])
         title_rect = title.get_rect(center=(SCREEN_WIDTH // 2, 50))
         self.screen.blit(title, title_rect)
         
         high_scores = self.high_score_manager.get_high_scores()
-        headers = ['排名', '玩家', '分数', '等级', '行数', '日期']
+        headers = [
+            self._t('high_scores.rank'),
+            self._t('high_scores.player'),
+            self._t('high_scores.score'),
+            self._t('high_scores.level'),
+            self._t('high_scores.lines'),
+            self._t('high_scores.date')
+        ]
         x_positions = [150, 220, 320, 400, 470, 550]
         
         for i, header in enumerate(headers):
@@ -618,28 +710,30 @@ class GameEngine:
             date_text = self.tiny_font.render(score_data['date'][:10], True, color)
             self.screen.blit(date_text, (x_positions[5], y + 5))
         
-        back_text = self.small_font.render("按 ESC 返回菜单", True, COLORS['WHITE'])
+        back_text = self.small_font.render(self._t('game_over.menu'), True, COLORS['WHITE'])
         back_rect = back_text.get_rect(center=(SCREEN_WIDTH // 2, 500))
         self.screen.blit(back_text, back_rect)
     
     def _render_statistics(self):
         """渲染统计数据"""
-        title = self.font.render("游戏统计", True, COLORS['YELLOW'])
+        title = self.font.render(self._t('statistics.title'), True, COLORS['YELLOW'])
         title_rect = title.get_rect(center=(SCREEN_WIDTH // 2, 50))
         self.screen.blit(title, title_rect)
         
         stats = self.stats_manager.get_statistics()
+        total_time = format_time(self.language, stats['total_play_time_seconds'])
+        avg_session = format_time(self.language, stats['average_session_time'])
         stat_items = [
-            f"总游戏次数: {stats['total_games']}",
-            f"总游戏时间: {stats['total_play_time_formatted']}",
-            f"总清除行数: {stats['total_lines_cleared']}",
-            f"总得分: {stats['total_score']}",
-            f"最高分数: {stats['highest_score']}",
-            f"最高等级: {stats['highest_level']}",
-            f"单局最多行数: {stats['most_lines_cleared']}",
-            f"平均分数: {stats['average_score']}",
-            f"平均行数: {stats['average_lines']}",
-            f"平均游戏时长: {stats['average_session_time']}秒"
+            f"{self._t('statistics.total_games')}: {stats['total_games']}",
+            f"{self._t('statistics.total_time')}: {total_time}",
+            f"{self._t('statistics.total_lines')}: {stats['total_lines_cleared']}",
+            f"{self._t('statistics.total_score')}: {stats['total_score']}",
+            f"{self._t('statistics.highest_score')}: {stats['highest_score']}",
+            f"{self._t('statistics.highest_level')}: {stats['highest_level']}",
+            f"{self._t('statistics.most_lines')}: {stats['most_lines_cleared']}",
+            f"{self._t('statistics.average_score')}: {stats['average_score']}",
+            f"{self._t('statistics.average_lines')}: {stats['average_lines']}",
+            f"{self._t('statistics.average_session')}: {avg_session}"
         ]
         
         y = 120
@@ -648,30 +742,37 @@ class GameEngine:
             self.screen.blit(text, (200, y + i * 30))
         
         y = 420
-        diff_text = self.small_font.render("游戏难度分布:", True, COLORS['LIGHT_GRAY'])
+        diff_text = self.small_font.render(self._t('statistics.difficulty_distribution'), True, COLORS['LIGHT_GRAY'])
         self.screen.blit(diff_text, (200, y))
         
         difficulty_stats = stats['games_per_difficulty']
         for i, (difficulty, count) in enumerate(difficulty_stats.items()):
             y = 450 + i * 25
-            text = self.tiny_font.render(f"{difficulty}: {count} 场", True, COLORS['WHITE'])
+            label = difficulty_label(self.language, difficulty)
+            text = self.tiny_font.render(
+                f"{label}: {count} {self._t('statistics.games_suffix')}",
+                True,
+                COLORS['WHITE']
+            )
             self.screen.blit(text, (220, y))
         
-        back_text = self.small_font.render("按 ESC 返回菜单", True, COLORS['WHITE'])
+        back_text = self.small_font.render(self._t('game_over.menu'), True, COLORS['WHITE'])
         back_rect = back_text.get_rect(center=(SCREEN_WIDTH // 2, 550))
         self.screen.blit(back_text, back_rect)
     
     def _render_high_score_entry(self):
         """渲染高分输入界面"""
-        title = self.font.render("恭喜！新高分！", True, COLORS['YELLOW'])
+        title = self.font.render(self._t('high_score_entry.title'), True, COLORS['YELLOW'])
         title_rect = title.get_rect(center=(SCREEN_WIDTH // 2, 150))
         self.screen.blit(title, title_rect)
         
-        score_text = self.font.render(f"分数: {int(self.score)}", True, COLORS['WHITE'])
+        score_text = self.font.render(
+            f"{self._t('high_score_entry.score')}: {int(self.score)}", True, COLORS['WHITE']
+        )
         score_rect = score_text.get_rect(center=(SCREEN_WIDTH // 2, 220))
         self.screen.blit(score_text, score_rect)
         
-        prompt_text = self.small_font.render("请输入你的名字:", True, COLORS['WHITE'])
+        prompt_text = self.small_font.render(self._t('high_score_entry.prompt'), True, COLORS['WHITE'])
         prompt_rect = prompt_text.get_rect(center=(SCREEN_WIDTH // 2, 300))
         self.screen.blit(prompt_text, prompt_rect)
         
@@ -682,27 +783,27 @@ class GameEngine:
         name_rect = name_text.get_rect(center=(SCREEN_WIDTH // 2, 350))
         self.screen.blit(name_text, name_rect)
         
-        hint_text = self.tiny_font.render("按 ENTER 确认, ESC 取消", True, COLORS['LIGHT_GRAY'])
+        hint_text = self.tiny_font.render(self._t('high_score_entry.hint'), True, COLORS['LIGHT_GRAY'])
         hint_rect = hint_text.get_rect(center=(SCREEN_WIDTH // 2, 400))
         self.screen.blit(hint_text, hint_rect)
     
     def _render_settings(self):
         """渲染设置菜单"""
-        title = self.font.render("游戏设置", True, COLORS['YELLOW'])
+        title = self.font.render(self._t('settings.title'), True, COLORS['YELLOW'])
         title_rect = title.get_rect(center=(SCREEN_WIDTH // 2, 50))
         self.screen.blit(title, title_rect)
         
-        for i, item in enumerate(self.settings_menu_items):
+        for i, item in enumerate(self.settings_menu_entries):
             color = COLORS['YELLOW'] if i == self.settings_menu_index else COLORS['WHITE']
-            text = self.small_font.render(item, True, color)
+            text = self.small_font.render(item['label'], True, color)
             text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, 150 + i * 40))
             self.screen.blit(text, text_rect)
         
         controls = [
-            "使用 ↑↓ 选择设置",
-            "使用 ←→ 调整设置",
-            "按 ENTER 确认",
-            "按 ESC 返回菜单"
+            self._t('settings.hint.up_down'),
+            self._t('settings.hint.left_right'),
+            self._t('settings.hint.enter'),
+            self._t('settings.hint.esc')
         ]
         for i, control in enumerate(controls):
             text = self.tiny_font.render(control, True, COLORS['LIGHT_GRAY'])

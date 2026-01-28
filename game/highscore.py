@@ -57,10 +57,10 @@ class HighScoreManager:
             print(f"保存高分数据失败: {e}")
             return False
     
-    def add_score(self, name: str, score: int, level: int, lines: int) -> bool:
+    def add_score(self, name: str, score: int, level: int, lines: int, default_name: str = "Anonymous") -> bool:
         """添加新分数"""
         if not name.strip():
-            name = "匿名玩家"
+            name = default_name
         
         new_score = {
             'name': name.strip(),

@@ -112,23 +112,10 @@ class StatisticsManager:
             stats['average_lines'] = 0
             stats['average_session_time'] = 0
         
-        # 格式化时间
-        stats['total_play_time_formatted'] = self._format_time(stats['total_play_time'])
+        stats['total_play_time_seconds'] = stats['total_play_time']
         
         return stats
     
-    def _format_time(self, seconds: float) -> str:
-        """格式化时间显示"""
-        if seconds < 60:
-            return f"{int(seconds)}秒"
-        elif seconds < 3600:
-            minutes = int(seconds // 60)
-            secs = int(seconds % 60)
-            return f"{minutes}分{secs}秒"
-        else:
-            hours = int(seconds // 3600)
-            minutes = int((seconds % 3600) // 60)
-            return f"{hours}小时{minutes}分钟"
     
     def reset_statistics(self) -> bool:
         """重置统计数据"""

@@ -7,6 +7,7 @@
     <meta
       name="description"
       content="一款专注节奏与精度的桌面级俄罗斯方块，支持高分榜、统计与可调难度。"
+      id="meta-description"
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -89,6 +90,27 @@
       header {
         display: grid;
         gap: 20px;
+      }
+
+      .lang-switch {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+      }
+
+      .lang-switch button {
+        border: 1px solid var(--stroke);
+        background: transparent;
+        color: var(--text);
+        font-size: 12px;
+        padding: 6px 14px;
+        border-radius: 999px;
+        cursor: pointer;
+      }
+
+      .lang-switch button.active {
+        border-color: rgba(41, 242, 208, 0.5);
+        background: rgba(41, 242, 208, 0.12);
       }
 
       .eyebrow {
@@ -280,21 +302,34 @@
     <div class="page">
       <div class="glow"></div>
       <div class="container">
+        <div class="lang-switch" role="group" aria-label="Language">
+          <button type="button" data-lang="zh">中文</button>
+          <button type="button" data-lang="en">English</button>
+          <button type="button" data-lang="ja">日本語</button>
+        </div>
+
         <header>
           <div class="eyebrow">
-            <span>Desktop Build</span>
-            <span>Python + Pygame</span>
+            <span data-i18n="eyebrow.desktop">Desktop Build</span>
+            <span data-i18n="eyebrow.tech">Python + Pygame</span>
           </div>
-          <h1>Neon Tetris 控制台</h1>
-          <p class="subtitle">
+          <h1 data-i18n="hero.title">Neon Tetris 控制台</h1>
+          <p class="subtitle" data-i18n="hero.subtitle">
             聚焦节奏、速度与策略的桌面级俄罗斯方块。沉浸式界面、统计看板与高分榜，让你每一局都能找到新的破局路线。
           </p>
           <div class="cta-row">
-            <a class="button primary" href="https://github.com/ShaBaoFa/tetris-game">
+            <a class="button primary" href="https://github.com/ShaBaoFa/tetris-game" data-i18n="cta.repo">
               查看代码库
             </a>
-            <a class="button ghost" href="#run">本地运行指南</a>
-            <a class="button ghost" href="https://github.com/ShaBaoFa/tetris-game/blob/main/README.md">
+            <a class="button ghost" href="https://github.com/ShaBaoFa/tetris-game/releases/latest" data-i18n="cta.download">
+              下载 Windows 版
+            </a>
+            <a class="button ghost" href="#run" data-i18n="cta.run">本地运行指南</a>
+            <a
+              class="button ghost"
+              href="https://github.com/ShaBaoFa/tetris-game/blob/main/README.md"
+              data-i18n="cta.readme"
+            >
               阅读使用说明
             </a>
           </div>
@@ -302,65 +337,65 @@
 
         <section class="hero-grid">
           <div class="hero-panel">
-            <h2>实时对局舱</h2>
+            <h2 data-i18n="panel.live.title">实时对局舱</h2>
             <div class="stats">
               <div class="stat-card">
-                <span>模式</span>
-                <strong>经典竞速</strong>
+                <span data-i18n="stats.mode.label">模式</span>
+                <strong data-i18n="stats.mode.value">经典竞速</strong>
               </div>
               <div class="stat-card">
-                <span>难度曲线</span>
-                <strong>动态加速</strong>
+                <span data-i18n="stats.difficulty.label">难度曲线</span>
+                <strong data-i18n="stats.difficulty.value">动态加速</strong>
               </div>
               <div class="stat-card">
-                <span>数据追踪</span>
-                <strong>胜率统计</strong>
+                <span data-i18n="stats.tracking.label">数据追踪</span>
+                <strong data-i18n="stats.tracking.value">胜率统计</strong>
               </div>
             </div>
             <div class="grid-row">
               <div class="feature-card">
-                <h3>幽灵方块</h3>
-                <p>预测落点，让你以更稳的节奏做出提前决策。</p>
+                <h3 data-i18n="feature.ghost.title">幽灵方块</h3>
+                <p data-i18n="feature.ghost.desc">预测落点，让你以更稳的节奏做出提前决策。</p>
               </div>
               <div class="feature-card">
-                <h3>高分榜</h3>
-                <p>本地存档，记录每一次突破记录的时刻。</p>
+                <h3 data-i18n="feature.highscore.title">高分榜</h3>
+                <p data-i18n="feature.highscore.desc">本地存档，记录每一次突破记录的时刻。</p>
               </div>
               <div class="feature-card">
-                <h3>沉浸音效</h3>
-                <p>支持自定义音效文件，营造紧张节拍。</p>
+                <h3 data-i18n="feature.audio.title">沉浸音效</h3>
+                <p data-i18n="feature.audio.desc">支持自定义音效文件，营造紧张节拍。</p>
               </div>
             </div>
           </div>
 
           <aside class="hero-panel" style="box-shadow: 0 30px 60px -40px rgba(255, 179, 71, 0.6)">
-            <h2>操作面板</h2>
+            <h2 data-i18n="panel.controls.title">操作面板</h2>
             <div class="controls">
               <div class="control-row">
-                <span>移动</span>
+                <span data-i18n="control.move">移动</span>
                 <div class="keys">
                   <span>←</span>
                   <span>→</span>
                 </div>
               </div>
               <div class="control-row">
-                <span>旋转</span>
+                <span data-i18n="control.rotate">旋转</span>
                 <div class="keys"><span>↑</span></div>
               </div>
               <div class="control-row">
-                <span>软降</span>
+                <span data-i18n="control.softdrop">软降</span>
                 <div class="keys"><span>↓</span></div>
               </div>
               <div class="control-row">
-                <span>硬降</span>
+                <span data-i18n="control.harddrop">硬降</span>
                 <div class="keys"><span>Space</span></div>
               </div>
               <div class="control-row">
-                <span>暂停</span>
+                <span data-i18n="control.pause">暂停</span>
                 <div class="keys"><span>P</span></div>
               </div>
               <div class="control-row">
-                <span>菜单</span>
+                <span data-i18n="control.menu">菜单</span>
                 <div class="keys"><span>Esc</span></div>
               </div>
             </div>
@@ -368,50 +403,350 @@
         </section>
 
         <section id="run" class="hero-panel">
-          <h2>本地运行指南</h2>
-          <p class="subtitle">
+          <h2 data-i18n="run.title">本地运行指南</h2>
+          <p class="subtitle" data-i18n="run.subtitle">
             需要 Python 3.10+ 与 Pygame。可选地放入音效文件提升沉浸感。
           </p>
           <div class="grid-row">
             <div class="feature-card">
-              <h3>1. 安装依赖</h3>
+              <h3 data-i18n="run.step1.title">1. 安装依赖</h3>
               <p>pip install -r requirements.txt</p>
             </div>
             <div class="feature-card">
-              <h3>2. 启动游戏</h3>
+              <h3 data-i18n="run.step2.title">2. 启动游戏</h3>
               <p>python main.py</p>
             </div>
             <div class="feature-card">
-              <h3>3. 自定义音效</h3>
-              <p>将音效放入 assets/sounds/</p>
+              <h3 data-i18n="run.step3.title">3. 自定义音效</h3>
+              <p data-i18n="run.step3.desc">将音效放入 assets/sounds/</p>
             </div>
           </div>
         </section>
 
         <section class="hero-panel">
-          <h2>数据与进度</h2>
-          <p class="subtitle">高分与统计会保存到本地 JSON 文件，便于追踪每次挑战。</p>
+          <h2 data-i18n="download.title">下载可执行版</h2>
+          <p class="subtitle" data-i18n="download.subtitle">
+            GitHub Actions 会自动打包 Windows 可执行文件，可直接下载体验。
+          </p>
+          <div class="cta-row">
+            <a
+              class="button primary"
+              href="https://github.com/ShaBaoFa/tetris-game/releases/latest"
+              data-i18n="download.button"
+            >
+              前往下载
+            </a>
+          </div>
+          <p class="subtitle" data-i18n="download.note">
+            下载页面中包含最新构建与更新日志。
+          </p>
+        </section>
+
+        <section class="hero-panel">
+          <h2 data-i18n="data.title">数据与进度</h2>
+          <p class="subtitle" data-i18n="data.subtitle">
+            高分与统计会保存到本地 JSON 文件，便于追踪每次挑战。
+          </p>
           <div class="grid-row">
             <div class="feature-card">
-              <h3>高分榜</h3>
+              <h3 data-i18n="data.highscores.title">高分榜</h3>
               <p>data/highscores.json</p>
             </div>
             <div class="feature-card">
-              <h3>统计数据</h3>
+              <h3 data-i18n="data.statistics.title">统计数据</h3>
               <p>data/statistics.json</p>
             </div>
             <div class="feature-card">
-              <h3>打包脚本</h3>
+              <h3 data-i18n="data.build.title">打包脚本</h3>
               <p>build_exe.bat</p>
             </div>
           </div>
         </section>
 
         <footer>
-          <span>Neon Tetris · Advanced Tetris</span>
-          <span>Build for GitHub Pages</span>
+          <span data-i18n="footer.left">Neon Tetris · Advanced Tetris</span>
+          <span data-i18n="footer.right">Build for GitHub Pages</span>
         </footer>
       </div>
     </div>
+    <script>
+      const translations = {
+        zh: {
+          meta: {
+            title: "Neon Tetris | 俄罗斯方块",
+            description: "一款专注节奏与精度的桌面级俄罗斯方块，支持高分榜、统计与可调难度。",
+          },
+          eyebrow: {
+            desktop: "Desktop Build",
+            tech: "Python + Pygame",
+          },
+          hero: {
+            title: "Neon Tetris 控制台",
+            subtitle: "聚焦节奏、速度与策略的桌面级俄罗斯方块。沉浸式界面、统计看板与高分榜，让你每一局都能找到新的破局路线。",
+          },
+          cta: {
+            repo: "查看代码库",
+            download: "下载 Windows 版",
+            run: "本地运行指南",
+            readme: "阅读使用说明",
+          },
+          panel: {
+            live: { title: "实时对局舱" },
+            controls: { title: "操作面板" },
+          },
+          stats: {
+            mode: { label: "模式", value: "经典竞速" },
+            difficulty: { label: "难度曲线", value: "动态加速" },
+            tracking: { label: "数据追踪", value: "胜率统计" },
+          },
+          feature: {
+            ghost: { title: "幽灵方块", desc: "预测落点，让你以更稳的节奏做出提前决策。" },
+            highscore: { title: "高分榜", desc: "本地存档，记录每一次突破记录的时刻。" },
+            audio: { title: "沉浸音效", desc: "支持自定义音效文件，营造紧张节拍。" },
+          },
+          control: {
+            move: "移动",
+            rotate: "旋转",
+            softdrop: "软降",
+            harddrop: "硬降",
+            pause: "暂停",
+            menu: "菜单",
+          },
+          run: {
+            title: "本地运行指南",
+            subtitle: "需要 Python 3.10+ 与 Pygame。可选地放入音效文件提升沉浸感。",
+            step1: { title: "1. 安装依赖" },
+            step2: { title: "2. 启动游戏" },
+            step3: { title: "3. 自定义音效", desc: "将音效放入 assets/sounds/" },
+          },
+          download: {
+            title: "下载可执行版",
+            subtitle: "GitHub Actions 会自动打包 Windows 可执行文件，可直接下载体验。",
+            button: "前往下载",
+            note: "下载页面中包含最新构建与更新日志。",
+          },
+          data: {
+            title: "数据与进度",
+            subtitle: "高分与统计会保存到本地 JSON 文件，便于追踪每次挑战。",
+            highscores: { title: "高分榜" },
+            statistics: { title: "统计数据" },
+            build: { title: "打包脚本" },
+          },
+          footer: {
+            left: "Neon Tetris · Advanced Tetris",
+            right: "Build for GitHub Pages",
+          },
+        },
+        en: {
+          meta: {
+            title: "Neon Tetris | Advanced Tetris",
+            description: "A rhythm-driven desktop Tetris with high scores, stats, and tunable difficulty.",
+          },
+          eyebrow: {
+            desktop: "Desktop Build",
+            tech: "Python + Pygame",
+          },
+          hero: {
+            title: "Neon Tetris Control Desk",
+            subtitle: "A desktop Tetris focused on rhythm, speed, and strategy. Track progress with stats and climb the leaderboard every session.",
+          },
+          cta: {
+            repo: "View Repository",
+            download: "Download Windows Build",
+            run: "Local Run Guide",
+            readme: "Read the Manual",
+          },
+          panel: {
+            live: { title: "Live Session Bay" },
+            controls: { title: "Control Panel" },
+          },
+          stats: {
+            mode: { label: "Mode", value: "Classic Sprint" },
+            difficulty: { label: "Difficulty Curve", value: "Dynamic Speed" },
+            tracking: { label: "Tracking", value: "Performance Stats" },
+          },
+          feature: {
+            ghost: { title: "Ghost Piece", desc: "Preview landings and steer with precision." },
+            highscore: { title: "High Scores", desc: "Local saves track every personal best." },
+            audio: { title: "Immersive Audio", desc: "Drop in your own sounds for a tighter rhythm." },
+          },
+          control: {
+            move: "Move",
+            rotate: "Rotate",
+            softdrop: "Soft drop",
+            harddrop: "Hard drop",
+            pause: "Pause",
+            menu: "Menu",
+          },
+          run: {
+            title: "Local Run Guide",
+            subtitle: "Requires Python 3.10+ and Pygame. Optional audio packs enhance immersion.",
+            step1: { title: "1. Install dependencies" },
+            step2: { title: "2. Launch the game" },
+            step3: { title: "3. Add audio pack", desc: "Place files in assets/sounds/" },
+          },
+          download: {
+            title: "Download Executable",
+            subtitle: "GitHub Actions builds the Windows executable automatically.",
+            button: "Go to Downloads",
+            note: "Find the latest build and release notes on the downloads page.",
+          },
+          data: {
+            title: "Data & Progress",
+            subtitle: "Scores and stats are stored locally in JSON files.",
+            highscores: { title: "High Scores" },
+            statistics: { title: "Statistics" },
+            build: { title: "Build Script" },
+          },
+          footer: {
+            left: "Neon Tetris · Advanced Tetris",
+            right: "Built for GitHub Pages",
+          },
+        },
+        ja: {
+          meta: {
+            title: "Neon Tetris | Advanced Tetris",
+            description: "リズム重視のデスクトップ版テトリス。ハイスコアと統計、難易度調整に対応。",
+          },
+          eyebrow: {
+            desktop: "Desktop Build",
+            tech: "Python + Pygame",
+          },
+          hero: {
+            title: "Neon Tetris コントロールデスク",
+            subtitle: "リズム、スピード、戦略を追求したデスクトップ版テトリス。統計とランキングで毎回のプレイを記録します。",
+          },
+          cta: {
+            repo: "リポジトリを見る",
+            download: "Windows 版をダウンロード",
+            run: "ローカル起動ガイド",
+            readme: "使い方を見る",
+          },
+          panel: {
+            live: { title: "ライブセッション" },
+            controls: { title: "操作パネル" },
+          },
+          stats: {
+            mode: { label: "モード", value: "クラシックスプリント" },
+            difficulty: { label: "難易度曲線", value: "ダイナミック加速" },
+            tracking: { label: "トラッキング", value: "成績統計" },
+          },
+          feature: {
+            ghost: { title: "ゴースト", desc: "落下位置を先読みして精密に操作。" },
+            highscore: { title: "ハイスコア", desc: "ローカル保存で毎回の自己ベストを記録。" },
+            audio: { title: "没入音響", desc: "音声ファイルを追加してリズムを強化。" },
+          },
+          control: {
+            move: "移動",
+            rotate: "回転",
+            softdrop: "ソフトドロップ",
+            harddrop: "ハードドロップ",
+            pause: "一時停止",
+            menu: "メニュー",
+          },
+          run: {
+            title: "ローカル起動ガイド",
+            subtitle: "Python 3.10+ と Pygame が必要です。音声パックで没入感が向上します。",
+            step1: { title: "1. 依存関係をインストール" },
+            step2: { title: "2. ゲームを起動" },
+            step3: { title: "3. 音声を追加", desc: "assets/sounds/ に配置" },
+          },
+          download: {
+            title: "実行ファイルを入手",
+            subtitle: "GitHub Actions が Windows 実行ファイルを自動生成します。",
+            button: "ダウンロードへ",
+            note: "最新ビルドと更新内容はダウンロードページで確認できます。",
+          },
+          data: {
+            title: "データと進行",
+            subtitle: "スコアと統計はローカルの JSON に保存されます。",
+            highscores: { title: "ハイスコア" },
+            statistics: { title: "統計" },
+            build: { title: "ビルドスクリプト" },
+          },
+          footer: {
+            left: "Neon Tetris · Advanced Tetris",
+            right: "GitHub Pages 用に構築",
+          },
+        },
+      };
+
+      const langButtons = document.querySelectorAll("[data-lang]");
+      const metaDescription = document.getElementById("meta-description");
+
+      function setText(keyPath, value) {
+        const element = document.querySelector(`[data-i18n="${keyPath}"]`);
+        if (element) {
+          element.textContent = value;
+        }
+      }
+
+      function applyTranslations(lang) {
+        const data = translations[lang] || translations.zh;
+        document.documentElement.lang = lang === "ja" ? "ja" : lang === "en" ? "en" : "zh-CN";
+        document.title = data.meta.title;
+        if (metaDescription) {
+          metaDescription.setAttribute("content", data.meta.description);
+        }
+        setText("eyebrow.desktop", data.eyebrow.desktop);
+        setText("eyebrow.tech", data.eyebrow.tech);
+        setText("hero.title", data.hero.title);
+        setText("hero.subtitle", data.hero.subtitle);
+        setText("cta.repo", data.cta.repo);
+        setText("cta.download", data.cta.download);
+        setText("cta.run", data.cta.run);
+        setText("cta.readme", data.cta.readme);
+        setText("panel.live.title", data.panel.live.title);
+        setText("panel.controls.title", data.panel.controls.title);
+        setText("stats.mode.label", data.stats.mode.label);
+        setText("stats.mode.value", data.stats.mode.value);
+        setText("stats.difficulty.label", data.stats.difficulty.label);
+        setText("stats.difficulty.value", data.stats.difficulty.value);
+        setText("stats.tracking.label", data.stats.tracking.label);
+        setText("stats.tracking.value", data.stats.tracking.value);
+        setText("feature.ghost.title", data.feature.ghost.title);
+        setText("feature.ghost.desc", data.feature.ghost.desc);
+        setText("feature.highscore.title", data.feature.highscore.title);
+        setText("feature.highscore.desc", data.feature.highscore.desc);
+        setText("feature.audio.title", data.feature.audio.title);
+        setText("feature.audio.desc", data.feature.audio.desc);
+        setText("control.move", data.control.move);
+        setText("control.rotate", data.control.rotate);
+        setText("control.softdrop", data.control.softdrop);
+        setText("control.harddrop", data.control.harddrop);
+        setText("control.pause", data.control.pause);
+        setText("control.menu", data.control.menu);
+        setText("run.title", data.run.title);
+        setText("run.subtitle", data.run.subtitle);
+        setText("run.step1.title", data.run.step1.title);
+        setText("run.step2.title", data.run.step2.title);
+        setText("run.step3.title", data.run.step3.title);
+        setText("run.step3.desc", data.run.step3.desc);
+        setText("download.title", data.download.title);
+        setText("download.subtitle", data.download.subtitle);
+        setText("download.button", data.download.button);
+        setText("download.note", data.download.note);
+        setText("data.title", data.data.title);
+        setText("data.subtitle", data.data.subtitle);
+        setText("data.highscores.title", data.data.highscores.title);
+        setText("data.statistics.title", data.data.statistics.title);
+        setText("data.build.title", data.data.build.title);
+        setText("footer.left", data.footer.left);
+        setText("footer.right", data.footer.right);
+
+        langButtons.forEach(button => {
+          button.classList.toggle("active", button.dataset.lang === lang);
+        });
+      }
+
+      const defaultLang = "zh";
+      applyTranslations(defaultLang);
+
+      langButtons.forEach(button => {
+        button.addEventListener("click", () => {
+          applyTranslations(button.dataset.lang);
+        });
+      });
+    </script>
   </body>
 </html>
